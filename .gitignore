@@ -4,8 +4,11 @@
 *.dll
 *.so
 *.dylib
+<<<<<<< HEAD
 *.air.toml
 tmp
+=======
+>>>>>>> origin/main
 
 # Test binary, built with `go test -c`
 *.test
@@ -14,4 +17,8 @@ tmp
 *.out
 
 # Dependency directories (remove the comment below to include it)
+<<<<<<< HEAD
 # vendor/
+=======
+# vendor/
+>>>>>>> origin/main
