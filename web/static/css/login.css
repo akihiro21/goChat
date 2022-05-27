@@ -1,0 +1,105 @@
+/*
+Copyright (c) 2013 joe
+link
+https://codepen.io/dope/pen/krzXXz
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+*/
+
+
+input:focus,
+textarea:focus {
+    outline: none;
+}
+
+label,
+select,
+button,
+input[type="submit"],
+input[type="radio"],
+input[type="checkbox"] input[type="button"] {
+    cursor: pointer;
+}
+
+.login {
+    font-size: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    font-family: "Helvetica Neue", Helvetica, Arial;
+}
+
+h5 {
+    text-align: center;
+    margin-top: 5px;
+    color: rgba(0, 0, 0, .3);
+}
+
+form {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 10px auto;
+    background: #fff;
+    border-radius: 6px;
+    padding: 20px;
+    padding-top: 30px;
+    width: 300px;
+    box-shadow: 15px 15px 0px rgba(0, 0, 0, .1);
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #4b4b4b;
+    margin-bottom: 24px;
+}
+
+input {
+    width: 100%;
+    background: #f5f5f5;
+    border: 0;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+}
+
+.btn {
+    width: 100%;
+    padding: 20px;
+    border-radius: 6px;
+    border: 0;
+    background: #f26964;
+    font-size: 1.2em;
+    color: #fff;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, .1);
+    box-shadow: 0px 3px 0px #c1524e;
+}
+
+.btn:active {
+    top: 3px;
+    box-shadow: none;
+}
+
+h6 {
+    font-size: 100%;
+    text-align: center;
+    padding: 10px;
+    color: #777;
+    cursor: pointer;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.alert {
+    background: #f26964;
+    color: #fff;
+    width: 100%;
+    padding: 20px;
+}

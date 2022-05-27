@@ -1,0 +1,31 @@
+{{define "header"}}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HssLab Chat</title>
+    <link rel="icon" href="/static/image/hsslab.jpg">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+    {{ if .Css }}
+    <link rel="stylesheet" type="text/css" href="/static/css/{{.Css}}.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="/static/js/create.js"></script>
+    {{end}}
+</head>
+
+<body>
+    <header>
+        <a href="/"><img class="lab" src="/static/image/hsslab.jpg"></a>
+        <nav class="pc-nav">
+            <ul>
+                {{ if eq .Login false }}
+                <a href="/logout">logout</a>
+                {{end}}
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {{end}}

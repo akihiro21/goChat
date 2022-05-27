@@ -1,0 +1,40 @@
+{{template "header" .}}
+
+<div class="room">
+    <h1 class="createroom">Create room</h1>
+    {{ if .Alert }}
+    <p class="alert">{{ .Alert }}</p>
+    {{end}}
+    <div class="form">
+        <form action="/room" method="post">
+            <label>ルーム名</label>
+            <input placeholder="name" name="name" type="text" required />
+            <label>開始日時</label>
+            <input placeholder="chat start time" name="date" type="datetime-local" required />
+            <input type="hidden" name="token" value="{{.Token}}">
+            <button class="btn">create</button>
+        </form>
+    </div>
+    <ul>
+        <table>
+            <tr class="heading">
+                <th>ルーム名</th>
+                <th>日付</th>
+                <th>人数</th>
+                <th></th>
+            </tr>
+            {{if .Room}}
+            {{ range .Room }}
+            <tr>
+                <td class="name">{{ .Name }}</td>
+                <td>{{ .Date }}</td>
+                <td>{{ .UserNum }}</td>
+                <td><button class="join" onclick="location.href='/chat/{{ .Name }}'">join</button></td>
+            </tr>
+            {{ end }}
+            {{ end }}
+        </table>
+    </ul>
+</div>
+
+{{template "footer"}}

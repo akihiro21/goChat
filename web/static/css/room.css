@@ -1,0 +1,126 @@
+/*
+Copyright (c) 2013 joe
+link
+https://codepen.io/dope/pen/krzXXz
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+*/
+
+
+input:focus,
+textarea:focus {
+    outline: none;
+}
+
+label,
+select,
+button,
+input[type="submit"],
+input[type="radio"],
+input[type="checkbox"] input[type="button"] {
+    cursor: pointer;
+}
+
+.login {
+    font-size: 100%;
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    font-family: "Helvetica Neue", Helvetica, Arial;
+}
+
+.join {
+    border-radius: 2px;
+    border: 0;
+    font-size: 1em;
+    font-family: "Helvetica Neue", Helvetica, Arial;
+}
+
+
+form {
+    border-radius: 6px;
+    width: 300px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    padding: 10px;
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #4b4b4b;
+}
+
+input {
+    width: 100%;
+    background: #f5f5f5;
+    border: 0;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+}
+
+.btn {
+    width: 100%;
+    padding: 20px;
+    border-radius: 6px;
+    border: 0;
+    background: #f26964;
+    font-size: 1.2em;
+    color: #fff;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, .1);
+    box-shadow: 0px 3px 0px #c1524e;
+}
+
+.btn:active {
+    top: 3px;
+    box-shadow: none;
+}
+
+
+.form {
+    display: none;
+}
+
+.room {
+    border-radius: 6px;
+    width: 90%;
+    margin: 0 auto;
+    background: #fff;
+
+}
+
+.alert {
+    width: 350px;
+    margin: 0 auto;
+    background: #f26964;
+    color: #fff;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th,
+td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    font-weight: normal;
+    font-size: .875rem;
+    color: #666;
+    background: #eee;
+}
+
+ul {
+    padding: 20px;
+    font-family: "Helvetica Neue", Helvetica, Arial;
+}

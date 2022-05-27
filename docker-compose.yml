@@ -1,0 +1,34 @@
+version: "3"
+services:
+  goapp:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile
+    depends_on:
+      - mysql
+    env_file:
+      - .env
+    container_name: goapp
+    stdin_open: true
+    tty: true # コンテナの永続化
+    volumes:
+      - ./:/go/src/app # マウントディレクトリ
+    ports:
+      - 8080:8080
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    platform: linux/x86_64
+    env_file:
+      - .env
+    ports:
+      - 3306:3306
+    volumes:
+      - ./MySQL:/docker-entrypoint-initdb.d
+      - mysqldata:/var/lib/mysql
+    restart: always
+
+volumes:
+  mysqldata:
+    name: mysqldata

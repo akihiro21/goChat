@@ -1,0 +1,23 @@
+{{template "header" .}}
+
+<div class="login">
+    <!--
+    Copyright (c) 2013 joe
+    link
+    https://codepen.io/dope/pen/krzXXz
+    Released under the MIT license
+    http://opensource.org/licenses/mit-license.php
+    -->
+    <form action="/create" method="post">
+        {{ if .Alert }}
+        <p class="alert">{{ .Alert }}</p>
+        {{end}}
+        <h1>Create Account</h1>
+        <input placeholder="Username" name="username" type="text" required />
+        <input placeholder="Password" name="password" type="password" required />
+        <input type="hidden" name="token" value="{{.Token}}">
+        <input class="btn" type="submit" value="Create">
+    </form>
+</div>
+
+{{template "footer"}}

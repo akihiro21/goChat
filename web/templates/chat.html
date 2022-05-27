@@ -1,0 +1,41 @@
+{{template "header" .}}
+
+<div class="chat">
+    {{ if .Alert }}
+    <p id="aleat" class="alert">{{ .Alert }}</p>
+    {{end}}
+    <div class="container-fluid ">
+        <div id="scroll-inner">
+            {{if .Chat}}
+            {{$v := .MyName}}
+            {{ range .Chat }}
+            <div class="chat_container">
+                <div class="flex">
+                    {{if eq .UserName $v}}
+                    <img src="/static/image/user1.jpg" alt="Avatar">
+                    {{else}}
+                    <img src="/static/image/user2.jpg" alt="Avatar">
+                    {{end}}
+                    <p id="mes">{{ .Message }}</p>
+                </div>
+            </div>
+            {{end}}
+            {{end}}
+        </div>
+    </div>
+    <div class="form">
+        <form id="form" action="/chat/{{.Room}}" method="post">
+            <div class="message-area">
+                <div class="message-area-text">
+                    <input type="hidden" name="token" value="{{.Token}}">
+                    <input id="in_form" class="in_form" type="text" name="message" required>
+                </div>
+                <div class="message-area-button">
+                    <input class="talk" type="submit" value="Chat">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{template "footer"}}
