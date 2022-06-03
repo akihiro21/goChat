@@ -1,0 +1,76 @@
+{{template "header" .}}
+<div class="flex">
+    <div class="chat">
+        {{ if .Alert }}
+        <p id="aleat" class="alert">{{ .Alert }}</p>
+        {{end}}
+        <div class="container-fluid">
+            <div id="scroll-inner">
+                {{if .Chat}}
+                {{$v := .MyName}}
+                {{$u := .User}}
+                <input id="user" type="hidden" value="OrangeBot">
+
+                {{ range .Chat }}
+                <div class="chat_container">
+                    <div class="flex">
+                        {{if eq .UserName $v}}
+                        <div class="icon">
+                            <img src="/static/image/bot.jpg" alt="Avatar">
+                            <p>{{$v}}</p>
+                        </div>
+                        {{else}}
+                        <div class="icon">
+                            <img src="/static/image/user2.jpg" alt="Avatar">
+                            <p>{{$u}}</p>
+                        </div>
+                        {{end}}
+                        <p id="mes">{{ .Message }}</p>
+                    </div>
+                </div>
+                {{end}}
+                {{end}}
+            </div>
+        </div>
+        <div class="form">
+            <form id="form" action="/chat/{{.Room}}" method="post">
+                <div class="message-area">
+                    <div class="message-area-text">
+                        <input type="hidden" name="token" value="{{.Token}}">
+                        <textarea id="in_form" class="in_form" type="textarea" name="message" required></textarea>
+                    </div>
+                    <div class="message-area-button">
+                        <input class="talk" type="submit" value="Chat">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="admin">
+        <div id="scroll-inner">
+            <div class="flex">
+                <form id="form" action="/chat/{{.Room}}" method="post">
+                    <input type="hidden" name="token" value="{{.Token}}">
+                    <input id="in_form" type="text" name="message" value="こんにちは！" readonly></input>
+                    <input type="submit" value="Chat">
+                </form>
+            </div>
+            <div class="flex">
+                <form id="form" action="/chat/{{.Room}}" method="post">
+                    <input type="hidden" name="token" value="{{.Token}}">
+                    <input id="in_form" type="text" name="message" value="あなたの名前はなんですか？" readonly></input>
+                    <input type="submit" value="Chat">
+                </form>
+            </div>
+            <div class="flex">
+                <form id="form" action="/chat/{{.Room}}" method="post">
+                    <input type="hidden" name="token" value="{{.Token}}">
+                    <input id="in_form" type="text" name="message" value="{{ .User }}さんですね！" readonly></input>
+                    <input type="submit" value="Chat">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{template "footer"}}

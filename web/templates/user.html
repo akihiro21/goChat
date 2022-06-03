@@ -1,0 +1,25 @@
+{{template "header" .}}
+
+<div class="room">
+    <h1 class="createroom"><a href="/admin">Room List</a></h1>
+    {{ if .Alert }}
+    <p class="alert">{{ .Alert }}</p>
+    {{end}}
+    <ul>
+        <table>
+            <tr class="heading">
+                <th>ユーザ名</th>
+                <th></th>
+            </tr>
+            {{if .User}}
+            {{ range .User }}
+            <tr>
+                <td class="name">{{ .Name }}</td>
+                <td><button class="join" onclick="location.href='/userDel/{{ .Name }}'">del</button></td>
+            </tr>
+            {{ end }}
+            {{ end }}
+        </table>
+    </ul>
+</div>
+{{template "footer"}}
