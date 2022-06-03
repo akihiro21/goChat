@@ -49,3 +49,16 @@ func (message *Message) Insert(db *sql.DB) {
 		log.Println(err)
 	}
 }
+
+func (message *Message) Delete(name string, db *sql.DB) {
+	delete, err := db.Prepare("DELETE FROM message WHERE room = ? ")
+	defer delete.Close()
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = delete.Exec(name)
+	defer delete.Close()
+	if err != nil {
+		log.Println(err)
+	}
+}

@@ -7,11 +7,12 @@
     background: #ffff;
     padding: 10px;
     margin: 10px auto;
-    width: 90%;
+    width: 70%;
     height: 75vh;
 }
 
 .container-fluid {
+
     height: 90%;
     bottom: auto;
     overflow-y: scroll;
@@ -44,11 +45,6 @@
     border-radius: 10%;
 }
 
-#mes {
-    width: 90%;
-    margin: auto 20px;
-}
-
 .form {
     height: 10%;
 }
@@ -64,6 +60,11 @@
 
 .message-area-button {
     width: 20%;
+}
+
+#mes {
+    width: 90%;
+    margin: auto 20px;
 }
 
 .in_form {
@@ -86,6 +87,11 @@
 
 form {
     height: 100%;
+}
+
+.admin {
+    padding: 10px;
+    margin: 10px auto;
 }
 
 .icon {

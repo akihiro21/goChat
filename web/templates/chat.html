@@ -8,13 +8,21 @@
         <div id="scroll-inner">
             {{if .Chat}}
             {{$v := .MyName}}
+            {{$u := .User}}
+            <input id="user" type="hidden" value="{{.MyName}}">
             {{ range .Chat }}
             <div class="chat_container">
                 <div class="flex">
                     {{if eq .UserName $v}}
-                    <img src="/static/image/user1.jpg" alt="Avatar">
+                    <div class="icon">
+                        <img src="/static/image/user1.jpg" alt="Avatar">
+                        <p>{{$v}}</p>
+                    </div>
                     {{else}}
-                    <img src="/static/image/user2.jpg" alt="Avatar">
+                    <div class="icon">
+                        <img src="/static/image/bot.jpg" alt="Avatar">
+                        <p>{{$u}}</p>
+                    </div>
                     {{end}}
                     <p id="mes">{{ .Message }}</p>
                 </div>
@@ -28,7 +36,7 @@
             <div class="message-area">
                 <div class="message-area-text">
                     <input type="hidden" name="token" value="{{.Token}}">
-                    <input id="in_form" class="in_form" type="text" name="message" required>
+                    <textarea id="in_form" class="in_form" type="textarea" name="message" required></textarea>
                 </div>
                 <div class="message-area-button">
                     <input class="talk" type="submit" value="Chat">

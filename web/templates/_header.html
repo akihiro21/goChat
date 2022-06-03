@@ -10,9 +10,11 @@
     <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
     {{ if .Css }}
     <link rel="stylesheet" type="text/css" href="/static/css/{{.Css}}.css" />
+    {{end}}
+    {{ if .Js }}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <script src="/static/js/create.js"></script>
+    <script src="/static/js/{{ .Js }}.js"></script>
     {{end}}
 </head>
 
