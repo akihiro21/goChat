@@ -4,13 +4,12 @@
         {{ if .Alert }}
         <p id="aleat" class="alert">{{ .Alert }}</p>
         {{end}}
+        <input id="user" type="hidden" value="OrangeBot">
         <div class="container-fluid">
             <div id="scroll-inner">
                 {{if .Chat}}
                 {{$v := .MyName}}
                 {{$u := .User}}
-                <input id="user" type="hidden" value="OrangeBot">
-
                 {{ range .Chat }}
                 <div class="chat_container">
                     <div class="flex">

@@ -9,7 +9,7 @@ window.onload = function () {
         log.scrollIntoView(false);
     }
 
-    function createHTML(msg, name) {
+    function createHTML(message, name) {
         let divChat = document.createElement("div");
         divChat.className = "chat_container"
         log.appendChild(divChat)
@@ -21,11 +21,10 @@ window.onload = function () {
         divFlex.appendChild(divIcon);
         let pMsg = document.createElement("p");
         pMsg.id = "mes"
-        let text = document.createTextNode(msg);
+        let text = document.createTextNode(message);
         divFlex.appendChild(pMsg);
         pMsg.appendChild(text);
         let icon = document.createElement("img");
-        console.log(name);
         if (name == "OrangeBot" || name == "admin") {
             icon.src = "/static/image/bot.jpg";
         } else {
@@ -85,9 +84,9 @@ window.onload = function () {
         }
 
         conn.onmessage = json => {
-            const msj = JSON.parse(json.data);
-            let messages = msj.message;
-            let username = msj.username;
+            const reserved = JSON.parse(json.data);
+            let messages = reserved.message;
+            let username = reserved.username;
             createHTML(messages, username);
         };
 
