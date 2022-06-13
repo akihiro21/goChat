@@ -14,52 +14,77 @@ type User struct {
 	room     int
 }
 
+type userDatabase struct{}
+
+func NewUserDB() UserOperation {
+	var userDB userDatabase
+	db := UserOperation(&userDB)
+	return db
+}
+
 //全てのユーザデータを取得
-func (user *User) readAll(db *sql.DB) []User {
-	var oneUser User
+func (d *userDatabase) readAll(db *sql.DB) []User {
+	var user User
 	var users []User
 	rows, err := db.Query("select * from user;")
 	if err != nil {
 		log.Println(err)
 	}
 	for rows.Next() {
-		err = rows.Scan(&oneUser.id, &oneUser.Name, &oneUser.password, &oneUser.room)
+		err = rows.Scan(&user.id, &user.Name, &user.password, &user.room)
 		if err != nil {
 			log.Println(err)
 		}
-		users = append(users, oneUser)
+		users = append(users, user)
 	}
 	rows.Close()
 	return users
 }
 
 //特定のユーザデータを取得
-func (user *User) readOne(db *sql.DB) {
-	prep, err := db.Prepare("SELECT * FROM user WHERE name = ? LIMIT 1")
+func (d *userDatabase) readValue(key string, value string, db *sql.DB) (User, error) {
+	var (
+		sql  string
+		user User
+	)
+
+	switch key {
+	case "name":
+		sql = "SELECT * FROM user WHERE name = ? LIMIT 1"
+	}
+
+	prep, err := db.Prepare(sql)
 	defer prep.Close()
 	if err != nil {
 		log.Println(err)
 	}
 
-	if err = prep.QueryRow(user.Name).Scan(&user.id, &user.Name, &user.password, &user.room); err != nil {
+	err = prep.QueryRow(value).Scan(&user.id, &user.Name, &user.password, &user.room)
+	if err != nil {
 		log.Println(err)
 	}
+
+	return user, err
 }
 
-func (user *User) idCheck(db *sql.DB) {
+func (d *userDatabase) readId(id int, db *sql.DB) (User, error) {
+	var user User
 	prep, err := db.Prepare("SELECT * FROM user WHERE id = ? LIMIT 1")
 	defer prep.Close()
 	if err != nil {
 		log.Println(err)
 	}
 
-	if err = prep.QueryRow(user.id).Scan(&user.id, &user.Name, &user.password, &user.room); err != nil {
+	err = prep.QueryRow(id).Scan(&user.id, &user.Name, &user.password, &user.room)
+	if err != nil {
 		log.Println(err)
 	}
+
+	return user, err
 }
 
 //新しいデータの追加
-func (user *User) insert(db *sql.DB) {
+func (d *userDatabase) insert(user *User, db *sql.DB) {
 	ins, err := db.Prepare("INSERT INTO user(name,password,room) VALUES(?,?,?)")
 	defer ins.Close()
 	if err != nil {
@@ -79,65 +104,55 @@ func (user *User) insert(db *sql.DB) {
 }
 
 //パスワードの変更
-func (user *User) update(userOne string, name string, db *sql.DB) {
-	var room Room
-	room.Name = name
-	room.nameCheck(db)
-	user.Name = userOne
-	user.readOne(db)
+func (d *userDatabase) roomUpdate(id int, userName string, db *sql.DB) error {
+	var (
+		room Room
+	)
+	roomDB := NewRoomDB()
+
+	_, err := d.readValue("name", userName, db)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	room, err = roomDB.readId(id, db)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
 	upd, err := db.Prepare("UPDATE user SET room = ? WHERE ( name = ? ) LIMIT 1")
 	defer upd.Close()
 	if err != nil {
 		log.Println(err)
+		return err
 	}
-	_, err = upd.Exec(room.Id, user.Name)
+	_, err = upd.Exec(room.Id, userName)
 	if err != nil {
 		log.Println(err)
+		return err
 	}
+	return nil
 }
 
-//ユーザデータが存在するかの確認
-func (user *User) roomCheck(db *sql.DB) int {
-	var oneUser User
-	check, err := db.Prepare("SELECT * FROM user WHERE name = ? LIMIT 1")
-	defer check.Close()
-	if err != nil {
-		log.Println(err)
-	}
-	err = check.QueryRow(user.Name).Scan(&oneUser.id, &oneUser.Name, &oneUser.password, &oneUser.room)
-	return oneUser.room
-}
-
-func (user *User) userCheck(db *sql.DB) error {
-	var oneUser User
-	exist, err := db.Prepare("SELECT * FROM user WHERE name = ? LIMIT 1")
-	defer exist.Close()
-	if err != nil {
-		panic(err)
-	}
-	err = exist.QueryRow(user.Name).Scan(&oneUser.id, &oneUser.Name, &oneUser.password, &oneUser.room)
-	log.Println("UserCheck", err)
-	return err
-}
-
-func (user *User) passCheck(db *sql.DB) error {
-	var oneUser User
+func (d *userDatabase) passCheck(userName string, userPassword string, db *sql.DB) error {
+	var user User
 	exist, err := db.Prepare("SELECT * FROM user WHERE name = ? LIMIT 1")
 	defer exist.Close()
 	if err != nil {
 		log.Println("dbOpen", err)
 	}
-	err = exist.QueryRow(user.Name).Scan(&oneUser.id, &oneUser.Name, &oneUser.password, &oneUser.room)
+	err = exist.QueryRow(userName).Scan(&user.id, &user.Name, &user.password, &user.room)
 	if err == nil {
-		err := bcrypt.CompareHashAndPassword([]byte(oneUser.password), []byte(user.password))
+		err := bcrypt.CompareHashAndPassword([]byte(user.password), []byte(userPassword))
 		log.Println("PassCheck", err)
 		return err
 	}
 	return err
 }
 
-//データの消去z
-func (user *User) delete(name string, db *sql.DB) {
+//データの消去
+func (d *userDatabase) delete(name string, db *sql.DB) {
 	delete, err := db.Prepare("DELETE FROM user WHERE name = ? ")
 	defer delete.Close()
 	if err != nil {

@@ -16,54 +16,47 @@ type Room struct {
 	user2   int
 }
 
+type roomDatabase struct{}
+
+func NewRoomDB() RoomOperation {
+	var roomDB roomDatabase
+	db := RoomOperation(&roomDB)
+	return db
+}
+
 //全てのユーザデータを取得
-func (room *Room) ReadAll(db *sql.DB) []Room {
+func (d *roomDatabase) readAll(admin bool, db *sql.DB) []Room {
 	var (
 		oneRoom Room
 		rooms   []Room
 		date    time.Time
+		sql     string
 	)
-	rows, err := db.Query("select * from room order by date;")
+
+	if admin {
+		sql = "select * from room WHERE userId1 = 0 or userId2 = 0 order by date;"
+	} else {
+		sql = "select * from room order by date;"
+	}
+
+	rows, err := db.Query(sql)
 	if err != nil {
-		log.Println(err)
+		log.Println("roomReadAll" + err.Error())
 	}
 	for rows.Next() {
 		err = rows.Scan(&oneRoom.Id, &oneRoom.Name, &date, &oneRoom.user1, &oneRoom.user2)
 		if err != nil {
-			log.Println(err)
+			log.Println("roomReadAll" + err.Error())
 		}
 		oneRoom.Date = date.Format("2006-01-02 15:04")
-		oneRoom.UserNum = oneRoom.num()
+		oneRoom.UserNum = d.num(&oneRoom)
 		rooms = append(rooms, oneRoom)
 	}
 	rows.Close()
 	return rooms
 }
 
-func (room *Room) ReadAir(db *sql.DB) []Room {
-	var (
-		oneRoom Room
-		rooms   []Room
-		date    time.Time
-	)
-	rows, err := db.Query("select * from room WHERE userId1 = 0 or userId2 = 0 order by date;")
-	if err != nil {
-		log.Println(err)
-	}
-	for rows.Next() {
-		err = rows.Scan(&oneRoom.Id, &oneRoom.Name, &date, &oneRoom.user1, &oneRoom.user2)
-		if err != nil {
-			log.Println(err)
-		}
-		oneRoom.Date = date.Format("2006-01-02 15:04")
-		oneRoom.UserNum = oneRoom.num()
-		rooms = append(rooms, oneRoom)
-	}
-	rows.Close()
-	return rooms
-}
-
-func (room *Room) Insert(db *sql.DB) {
+func (d *roomDatabase) insert(room Room, db *sql.DB) {
 	ins, err := db.Prepare("INSERT INTO room(name,date,userId1,userId2) VALUES(?,?,?,?)")
 	defer ins.Close()
 	if err != nil {
@@ -72,153 +65,106 @@ func (room *Room) Insert(db *sql.DB) {
 
 	_, err = ins.Exec(&room.Name, &room.Date, &room.user1, &room.user2)
 	if err != nil {
-		log.Println(err)
+		log.Println("Insert room" + err.Error())
 	}
 }
 
-func (room *Room) nameCheck(db *sql.DB) error {
-	exist, err := db.Prepare("SELECT * FROM room WHERE name = ? LIMIT 1")
+func (d *roomDatabase) readValue(key string, value string, db *sql.DB) (Room, error) {
+	var (
+		room Room
+		sql  string
+	)
+
+	switch key {
+	case "name":
+		sql = "SELECT * FROM room WHERE name = ? LIMIT 1"
+	}
+
+	exist, err := db.Prepare(sql)
 	defer exist.Close()
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
 	}
-	err = exist.QueryRow(room.Name).Scan(&room.Id, &room.Name, &room.Date, &room.user1, &room.user2)
-	return err
+
+	err = exist.QueryRow(value).Scan(&room.Id, &room.Name, &room.Date, &room.user1, &room.user2)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	return room, err
+
 }
 
-func (room *Room) idCheck(db *sql.DB) error {
+func (d *roomDatabase) readId(id int, db *sql.DB) (Room, error) {
+	var room Room
+
 	exist, err := db.Prepare("SELECT * FROM room WHERE id = ? LIMIT 1")
 	defer exist.Close()
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
 	}
-	err = exist.QueryRow(room.Id).Scan(&room.Id, &room.Name, &room.Date, &room.user1, &room.user2)
-	return err
+
+	err = exist.QueryRow(id).Scan(&room.Id, &room.Name, &room.Date, &room.user1, &room.user2)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	return room, err
 }
 
-func (room *Room) UpdUser1(user string, name string, db *sql.DB) error {
-	room.Name = name
-	if err := room.nameCheck(db); err != nil {
+func (d *roomDatabase) userUpdate(key string, id int, roomName string, db *sql.DB) error {
+	var (
+		sql string
+	)
+
+	roomOne, err := d.readValue("name", roomName, db)
+	if err != nil {
 		return err
 	}
 
-	var userOne User
-	userOne.Name = user
-	userOne.readOne(db)
+	switch key {
+	case "userId1":
+		if roomOne.user1 == id {
+			return nil
+		} else if roomOne.user1 != 0 {
+			return fmt.Errorf("Error: %s", "room is crowded")
+		}
+		sql = "UPDATE room SET userId1 = ? WHERE ( name = ? ) LIMIT 1"
 
-	if room.user1 == userOne.id {
-		return nil
+	case "userId2":
+		if roomOne.user2 == id {
+			return nil
+		} else if roomOne.user2 != 0 {
+			return fmt.Errorf("Error: %s", "room is crowded")
+		}
+		sql = "UPDATE room SET userId2 = ? WHERE ( name = ? ) LIMIT 1"
 	}
-	if room.user1 == 0 {
-		upd, err := db.Prepare("UPDATE room SET userId1 = ? WHERE ( name = ? ) LIMIT 1")
-		defer upd.Close()
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = upd.Exec(userOne.id, name)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		return fmt.Errorf("Error: %s", "fmt.Errorf")
+
+	upd, err := db.Prepare(sql)
+	defer upd.Close()
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = upd.Exec(id, roomName)
+	if err != nil {
+		log.Println(err)
 	}
 	return nil
 }
 
-func (room *Room) UpdUser2(user string, name string, db *sql.DB) error {
-	room.Name = name
-	if err := room.nameCheck(db); err != nil {
-		return err
-	}
-
-	var userOne User
-	userOne.Name = user
-	userOne.readOne(db)
-	if room.user2 == userOne.id {
-		return nil
-	}
-	if room.user2 == 0 {
-		upd, err := db.Prepare("UPDATE room SET userId2 = ? WHERE ( name = ? ) LIMIT 1")
-		defer upd.Close()
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = upd.Exec(userOne.id, name)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		return fmt.Errorf("Error: %s", "fmt.Errorf")
-	}
-	return nil
-}
-
-func (room *Room) resetUser1(user string, name string, db *sql.DB) error {
-	room.Name = name
-	if err := room.nameCheck(db); err != nil {
-		return err
-	}
-
-	var userOne User
-	userOne.Name = name
-	userOne.readOne(db)
-
-	if room.user1 == userOne.id {
-		upd, err := db.Prepare("UPDATE room SET userId1 = ? WHERE ( name = ? ) LIMIT 1")
-		defer upd.Close()
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = upd.Exec(0, name)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		return fmt.Errorf("Error: %s", "fmt.Errorf")
-	}
-	return nil
-}
-
-func (room *Room) resetUser2(user string, name string, db *sql.DB) error {
-	room.Name = name
-	if err := room.nameCheck(db); err != nil {
-		return err
-	}
-
-	var userOne User
-	userOne.Name = name
-	userOne.readOne(db)
-
-	if room.user2 == userOne.id {
-		upd, err := db.Prepare("UPDATE room SET userId2 = ? WHERE ( name = ? ) LIMIT 1")
-		defer upd.Close()
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = upd.Exec(0, name)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		return fmt.Errorf("Error: %s", "fmt.Errorf")
-	}
-	return nil
-}
-
-func (room *Room) Delete(name string, db *sql.DB) {
+func (d *roomDatabase) delete(room string, db *sql.DB) {
 	delete, err := db.Prepare("DELETE FROM room WHERE name = ? ")
 	defer delete.Close()
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = delete.Exec(name)
+	_, err = delete.Exec(room)
 	defer delete.Close()
 	if err != nil {
 		log.Println(err)
 	}
 }
 
-func (room *Room) num() int {
+func (d roomDatabase) num(room *Room) int {
 	if room.user2 != 0 && room.user1 != 0 {
 		return 2
 	} else if room.user2 == 0 && room.user1 == 0 {

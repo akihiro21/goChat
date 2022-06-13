@@ -15,7 +15,7 @@ func main() {
 	myDb := packages.ConnectDB()
 	defer myDb.Close()
 
-	packages.DbInit(myDb)
+	packages.Init(myDb)
 
 	mux := http.NewServeMux()
 	dir, _ := os.Getwd()

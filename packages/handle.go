@@ -19,11 +19,11 @@ type Msg struct {
 
 var (
 	tokens    []string
-	chatMess  = Message{}
 	msg       = Msg{}
-	account   = User{}
-	rooms     = Room{}
 	db        *sql.DB
+	userDB    = NewUserDB()
+	roomDB    = NewRoomDB()
+	MessageDB = NewMessageDB()
 	templates = make(map[string]*template.Template)
 )
 
@@ -50,7 +50,7 @@ func HandleInit(mux *http.ServeMux) {
 	mux.HandleFunc("/userDel/", userDel)
 }
 
-func DbInit(myDb *sql.DB) {
+func Init(myDb *sql.DB) {
 	db = myDb
 }
 
@@ -110,12 +110,13 @@ func login(w http.ResponseWriter, r *http.Request) {
 				msg.Message = "Passwordが入力されていません。"
 				http.Redirect(w, r, "/login", http.StatusFound)
 			} else {
-				account = User{
+				account := User{
 					Name:     r.Form.Get("username"),
 					password: r.Form.Get("password"),
 				}
-				if account.userCheck(db) == nil {
-					if account.passCheck(db) == nil {
+
+				if _, err := userDB.readValue("name", account.Name, db); err == nil {
+					if userDB.passCheck(account.Name, account.password, db) == nil {
 						loginSession(account.Name, w, r)
 						if sessionName(w, r) == "admin" {
 							http.Redirect(w, r, "/admin", http.StatusFound)
@@ -173,29 +174,29 @@ func create(w http.ResponseWriter, r *http.Request) {
 				msg.Message = "Passwordが入力されていません。"
 				http.Redirect(w, r, "/create", http.StatusFound)
 			} else {
-				account = User{
+				account := User{
 					Name:     r.Form.Get("username"),
 					password: r.Form.Get("password"),
 					room:     0,
 				}
-				if account.userCheck(db) == nil {
+				if _, err := userDB.readValue("name", account.Name, db); err == nil {
 					msg.Message = "そのユーザネームは既に存在します。"
 					http.Redirect(w, r, "/create", http.StatusFound)
 				} else {
-					account.insert(db)
+					userDB.insert(&account, db)
 					data := time.Now().Format("2006-01-02 15:04")
-					rooms = Room{
+					room := Room{
 						Name:    account.Name,
 						Date:    data,
 						UserNum: 0,
 						user1:   account.id,
 						user2:   0,
 					}
-					if rooms.nameCheck(db) == nil {
+					if _, err := roomDB.readValue("name", room.Name, db); err == nil {
 						msg.Message = "そのルーム名は既に存在します。"
 						http.Redirect(w, r, "/room", http.StatusFound)
 					}
-					rooms.Insert(db)
+					roomDB.insert(room, db)
 					loginSession(account.Name, w, r)
 					http.Redirect(w, r, "/chat/"+account.Name, http.StatusFound)
 				}
@@ -211,17 +212,18 @@ func room(w http.ResponseWriter, r *http.Request) {
 	} else {
 		if r.Method == "GET" {
 			tokenCheck(w, r)
-			account.Name = sessionName(w, r)
-			if num := account.roomCheck(db); num != 0 {
-				rooms.Id = num
-				if err := rooms.idCheck(db); err != nil {
-					log.Println(err)
+			name := sessionName(w, r)
+			account, _ := userDB.readValue("name", name, db)
+			if account.room != 0 {
+				room, err := roomDB.readId(account.room, db)
+				if err != nil {
+					log.Println("roomDB err" + err.Error())
 				}
-				url := "/chat/" + rooms.Name
+				url := "/chat/" + room.Name
 				http.Redirect(w, r, url, http.StatusFound)
 			}
 			t := templates["room"]
-			roomAll := rooms.ReadAir(db)
+			rooms := roomDB.readAll(false, db)
 			if err := t.Execute(w, struct {
 				Css   string
 				Js    string
@@ -229,7 +231,7 @@ func room(w http.ResponseWriter, r *http.Request) {
 				Login bool
 				Room  []Room
 				Token string
-			}{Css: "room", Js: "room", Alert: msg.Message, Login: noSession(w, r), Room: roomAll, Token: token(w, r)}); err != nil {
+			}{Css: "room", Js: "room", Alert: msg.Message, Login: noSession(w, r), Room: rooms, Token: token(w, r)}); err != nil {
 				log.Printf("failed to execute template: %v", err)
 			}
 			msg.Message = ""
@@ -240,22 +242,22 @@ func room(w http.ResponseWriter, r *http.Request) {
 
 			t := r.Form.Get("token")
 			if t == token(w, r) {
-				account.Name = sessionName(w, r)
-				account.readOne(db)
+				name := sessionName(w, r)
+				account, _ := userDB.readValue("name", name, db)
 
 				t := r.Form.Get("date")
-				rooms = Room{
+				room := Room{
 					Name:    r.Form.Get("name"),
 					Date:    t,
 					UserNum: 0,
 					user1:   account.id,
 					user2:   0,
 				}
-				if rooms.nameCheck(db) == nil {
+				if _, err := roomDB.readValue("name", room.Name, db); err == nil {
 					msg.Message = "そのルーム名は既に存在します。"
 					http.Redirect(w, r, "/room", http.StatusFound)
 				}
-				rooms.Insert(db)
+				roomDB.insert(room, db)
 				http.Redirect(w, r, "/room", http.StatusFound)
 			}
 		}
@@ -270,28 +272,24 @@ func chat(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/chat")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			rooms.Name = name
-			userName := ""
-			if rooms.nameCheck(db) == nil {
-				if err := rooms.UpdUser1(sessionName(w, r), name, db); err != nil {
-					if err := rooms.UpdUser2(sessionName(w, r), name, db); err != nil {
-						msg.Message = "この部屋は満員です。"
-						http.Redirect(w, r, "/room", http.StatusFound)
-					} else {
-						account.id = rooms.user1
-						account.idCheck(db)
-						userName = account.Name
+			account, _ := userDB.readValue("name", name, db)
+			if room, err := roomDB.readValue("name", name, db); err == nil {
+				if account.Name != "admin" {
+					if err := roomDB.userUpdate("userId1", account.id, room.Name, db); err != nil {
+						if err := roomDB.userUpdate("userId2", account.id, room.Name, db); err != nil {
+							msg.Message = "この部屋は満員です。"
+							http.Redirect(w, r, "/room", http.StatusFound)
+						}
 					}
-				} else {
-					account.id = rooms.user2
-					account.idCheck(db)
-					userName = account.Name
+					if err := userDB.roomUpdate(room.Id, account.Name, db); err != nil {
+						log.Println(err.Error())
+					}
 				}
-				account.update(sessionName(w, r), name, db)
+
 				if sessionName(w, r) == "admin" {
 					t := templates["adminChat"]
 					msg.Message = ""
-					chats := chatMess.ReadAll(name, db)
+					chats := MessageDB.readAll(name, db)
 					if err := t.Execute(w, struct {
 						Css    string
 						Js     string
@@ -302,14 +300,14 @@ func chat(w http.ResponseWriter, r *http.Request) {
 						MyName string
 						User   string
 						Token  string
-					}{Css: "adminChat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: rooms.Name, MyName: sessionName(w, r), User: userName, Token: token(w, r)}); err != nil {
+					}{Css: "adminChat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: account.Name, Token: token(w, r)}); err != nil {
 						log.Printf("failed to execute template: %v", err)
 					}
 					msg.Message = ""
 				} else {
 					t := templates["chat"]
 					msg.Message = ""
-					chats := chatMess.ReadAll(name, db)
+					chats := MessageDB.readAll(name, db)
 					if err := t.Execute(w, struct {
 						Css    string
 						Js     string
@@ -320,7 +318,7 @@ func chat(w http.ResponseWriter, r *http.Request) {
 						MyName string
 						User   string
 						Token  string
-					}{Css: "chat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: rooms.Name, MyName: sessionName(w, r), User: "OrangeBot", Token: token(w, r)}); err != nil {
+					}{Css: "chat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: "OrangeBot", Token: token(w, r)}); err != nil {
 						log.Printf("failed to execute template: %v", err)
 					}
 					msg.Message = ""
@@ -347,7 +345,7 @@ func chat(w http.ResponseWriter, r *http.Request) {
 						Room:     name,
 						UserName: sessionName(w, r),
 					}
-					mes.Insert(db)
+					MessageDB.insert(&mes, db)
 				}
 			}
 			http.Redirect(w, r, "/chat/"+name, http.StatusFound)
@@ -363,7 +361,7 @@ func admin(w http.ResponseWriter, r *http.Request) {
 			if sessionName(w, r) == "admin" {
 				t := templates["admin"]
 				tokenCheck(w, r)
-				roomAll := rooms.ReadAll(db)
+				roomAll := roomDB.readAll(true, db)
 				if err := t.Execute(w, struct {
 					Css   string
 					Js    string
@@ -390,7 +388,7 @@ func userList(w http.ResponseWriter, r *http.Request) {
 			if sessionName(w, r) == "admin" {
 				t := templates["user"]
 				tokenCheck(w, r)
-				userAll := account.readAll(db)
+				userAll := userDB.readAll(db)
 				if err := t.Execute(w, struct {
 					Css   string
 					Js    string
@@ -417,7 +415,7 @@ func userDel(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/userDel")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			account.delete(name, db)
+			userDB.delete(name, db)
 		}
 	}
 	http.Redirect(w, r, "/user", http.StatusFound)
@@ -431,7 +429,7 @@ func csvDown(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/csv")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			chats := chatMess.ReadAll(name, db)
+			chats := MessageDB.readAll(name, db)
 			list := make([][]string, len(chats))
 			for i := range list {
 				list[i] = make([]string, 2)
@@ -463,8 +461,8 @@ func roomDel(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/delete")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			rooms.Delete(name, db)
-			chatMess.Delete(name, db)
+			roomDB.delete(name, db)
+			MessageDB.delete(name, db)
 		}
 	}
 	http.Redirect(w, r, "/admin", http.StatusFound)
