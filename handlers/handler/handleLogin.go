@@ -1,9 +1,11 @@
-package handlers
+package handler
 
 import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/akihiro21/goChat/handlers/database"
 )
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -35,13 +37,13 @@ func login(w http.ResponseWriter, r *http.Request) {
 				msg.Message = "Passwordが入力されていません。"
 				http.Redirect(w, r, "/login", http.StatusFound)
 			} else {
-				account := User{
+				account := database.User{
 					Name:     r.Form.Get("username"),
-					password: r.Form.Get("password"),
+					Password: r.Form.Get("password"),
 				}
 
-				if _, err := userDB.readValue("name", account.Name, db); err == nil {
-					if userDB.passCheck(account.Name, account.password, db) == nil {
+				if _, err := userDB.ReadValue("name", account.Name, db); err == nil {
+					if userDB.PassCheck(account.Name, account.Password, db) == nil {
 						loginSession(account.Name, w, r)
 						if sessionName(w, r) == "admin" {
 							http.Redirect(w, r, "/admin", http.StatusFound)
@@ -99,29 +101,29 @@ func create(w http.ResponseWriter, r *http.Request) {
 				msg.Message = "Passwordが入力されていません。"
 				http.Redirect(w, r, "/create", http.StatusFound)
 			} else {
-				account := User{
+				account := database.User{
 					Name:     r.Form.Get("username"),
-					password: r.Form.Get("password"),
-					room:     0,
+					Password: r.Form.Get("password"),
+					Room:     0,
 				}
-				if _, err := userDB.readValue("name", account.Name, db); err == nil {
+				if _, err := userDB.ReadValue("name", account.Name, db); err == nil {
 					msg.Message = "そのユーザネームは既に存在します。"
 					http.Redirect(w, r, "/create", http.StatusFound)
 				} else {
-					userDB.insert(&account, db)
+					userDB.Insert(&account, db)
 					data := time.Now().Format("2006-01-02 15:04")
-					room := Room{
+					room := database.Room{
 						Name:    account.Name,
 						Date:    data,
 						UserNum: 0,
-						user1:   account.id,
-						user2:   0,
+						User1:   account.Id,
+						User2:   0,
 					}
-					if _, err := roomDB.readValue("name", room.Name, db); err == nil {
+					if _, err := roomDB.ReadValue("name", room.Name, db); err == nil {
 						msg.Message = "そのルーム名は既に存在します。"
 						http.Redirect(w, r, "/room", http.StatusFound)
 					}
-					roomDB.insert(room, db)
+					roomDB.Insert(room, db)
 					loginSession(account.Name, w, r)
 					http.Redirect(w, r, "/chat/"+account.Name, http.StatusFound)
 				}

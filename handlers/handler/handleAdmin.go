@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/csv"
@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/akihiro21/goChat/handlers/database"
 )
 
 func admin(w http.ResponseWriter, r *http.Request) {
@@ -16,13 +18,13 @@ func admin(w http.ResponseWriter, r *http.Request) {
 			if sessionName(w, r) == "admin" {
 				t := templates["admin"]
 				tokenCheck(w, r)
-				roomAll := roomDB.readAll(true, db)
+				roomAll := roomDB.ReadAll(true, db)
 				if err := t.Execute(w, struct {
 					Css   string
 					Js    string
 					Alert string
 					Login bool
-					Room  []Room
+					Room  []database.Room
 					Token string
 				}{Css: "room", Js: "room", Alert: msg.Message, Login: noSession(w, r), Room: roomAll, Token: token(w, r)}); err != nil {
 					log.Printf("failed to execute template: %v", err)
@@ -43,13 +45,13 @@ func userList(w http.ResponseWriter, r *http.Request) {
 			if sessionName(w, r) == "admin" {
 				t := templates["user"]
 				tokenCheck(w, r)
-				userAll := userDB.readAll(db)
+				userAll := userDB.ReadAll(db)
 				if err := t.Execute(w, struct {
 					Css   string
 					Js    string
 					Alert string
 					Login bool
-					User  []User
+					User  []database.User
 					Token string
 				}{Css: "room", Js: "room", Alert: msg.Message, Login: noSession(w, r), User: userAll[1:], Token: token(w, r)}); err != nil {
 					log.Printf("failed to execute template: %v", err)
@@ -70,7 +72,7 @@ func userDel(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/userDel")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			userDB.delete(name, db)
+			userDB.Delete(name, db)
 		}
 	}
 	http.Redirect(w, r, "/user", http.StatusFound)
@@ -84,7 +86,7 @@ func csvDown(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/csv")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			chats := MessageDB.readAll(name, db)
+			chats := MessageDB.ReadAll(name, db)
 			list := make([][]string, len(chats))
 			for i := range list {
 				list[i] = make([]string, 2)
@@ -116,8 +118,8 @@ func roomDel(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/delete")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			roomDB.delete(name, db)
-			MessageDB.delete(name, db)
+			roomDB.Delete(name, db)
+			MessageDB.Delete(name, db)
 		}
 	}
 	http.Redirect(w, r, "/admin", http.StatusFound)

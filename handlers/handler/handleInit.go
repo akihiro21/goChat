@@ -1,9 +1,32 @@
-package handlers
+package handler
 
-import "net/http"
+import (
+	"database/sql"
+	"html/template"
+	"net/http"
 
-func HandleInit(mux *http.ServeMux) {
+	"github.com/akihiro21/goChat/handlers/database"
+)
+
+type Msg struct {
+	Message string
+}
+
+var (
+	tokens    []string
+	msg       = Msg{}
+	db        *sql.DB
+	userDB    = database.NewUserDB()
+	roomDB    = database.NewRoomDB()
+	MessageDB = database.NewMessageDB()
+	templates = make(map[string]*template.Template)
+)
+
+func Init(mux *http.ServeMux) {
 	go H.run()
+	db = database.ConnectDB()
+	defer db.Close()
+	SessionInit()
 	templatesInit()
 	HandlerInit(mux)
 }

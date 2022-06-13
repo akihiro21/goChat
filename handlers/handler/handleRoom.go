@@ -1,8 +1,10 @@
-package handlers
+package handler
 
 import (
 	"log"
 	"net/http"
+
+	"github.com/akihiro21/goChat/handlers/database"
 )
 
 func room(w http.ResponseWriter, r *http.Request) {
@@ -12,9 +14,9 @@ func room(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			tokenCheck(w, r)
 			name := sessionName(w, r)
-			account, _ := userDB.readValue("name", name, db)
-			if account.room != 0 {
-				room, err := roomDB.readId(account.room, db)
+			account, _ := userDB.ReadValue("name", name, db)
+			if account.Room != 0 {
+				room, err := roomDB.ReadId(account.Room, db)
 				if err != nil {
 					log.Println("roomDB err" + err.Error())
 				}
@@ -22,13 +24,13 @@ func room(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, url, http.StatusFound)
 			}
 			t := templates["room"]
-			rooms := roomDB.readAll(false, db)
+			rooms := roomDB.ReadAll(false, db)
 			if err := t.Execute(w, struct {
 				Css   string
 				Js    string
 				Alert string
 				Login bool
-				Room  []Room
+				Room  []database.Room
 				Token string
 			}{Css: "room", Js: "room", Alert: msg.Message, Login: noSession(w, r), Room: rooms, Token: token(w, r)}); err != nil {
 				log.Printf("failed to execute template: %v", err)
@@ -42,21 +44,21 @@ func room(w http.ResponseWriter, r *http.Request) {
 			t := r.Form.Get("token")
 			if t == token(w, r) {
 				name := sessionName(w, r)
-				account, _ := userDB.readValue("name", name, db)
+				account, _ := userDB.ReadValue("name", name, db)
 
 				t := r.Form.Get("date")
-				room := Room{
+				room := database.Room{
 					Name:    r.Form.Get("name"),
 					Date:    t,
 					UserNum: 0,
-					user1:   account.id,
-					user2:   0,
+					User1:   account.Id,
+					User2:   0,
 				}
-				if _, err := roomDB.readValue("name", room.Name, db); err == nil {
+				if _, err := roomDB.ReadValue("name", room.Name, db); err == nil {
 					msg.Message = "そのルーム名は既に存在します。"
 					http.Redirect(w, r, "/room", http.StatusFound)
 				}
-				roomDB.insert(room, db)
+				roomDB.Insert(room, db)
 				http.Redirect(w, r, "/room", http.StatusFound)
 			}
 		}

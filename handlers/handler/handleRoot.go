@@ -1,31 +1,12 @@
-package handlers
+package handler
 
 import (
-	"database/sql"
 	"html/template"
 	"log"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-type Msg struct {
-	Message string
-}
-
-var (
-	tokens    []string
-	msg       = Msg{}
-	db        *sql.DB
-	userDB    = NewUserDB()
-	roomDB    = NewRoomDB()
-	MessageDB = NewMessageDB()
-	templates = make(map[string]*template.Template)
-)
-
-func Init(myDb *sql.DB) {
-	db = myDb
-}
 
 func loadTemplate(name string) *template.Template {
 	t, err := template.ParseFiles(

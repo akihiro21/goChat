@@ -1,10 +1,12 @@
-package handlers
+package handler
 
 import (
 	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/akihiro21/goChat/handlers/database"
 )
 
 func chat(w http.ResponseWriter, r *http.Request) {
@@ -15,16 +17,16 @@ func chat(w http.ResponseWriter, r *http.Request) {
 		ep := strings.TrimPrefix(r.URL.Path, "/chat")
 		_, name := filepath.Split(ep)
 		if name != "" {
-			account, _ := userDB.readValue("name", name, db)
-			if room, err := roomDB.readValue("name", name, db); err == nil {
+			account, _ := userDB.ReadValue("name", name, db)
+			if room, err := roomDB.ReadValue("name", name, db); err == nil {
 				if account.Name != "admin" {
-					if err := roomDB.userUpdate("userId1", account.id, room.Name, db); err != nil {
-						if err := roomDB.userUpdate("userId2", account.id, room.Name, db); err != nil {
+					if err := roomDB.UserUpdate("userId1", account.Id, room.Name, db); err != nil {
+						if err := roomDB.UserUpdate("userId2", account.Id, room.Name, db); err != nil {
 							msg.Message = "この部屋は満員です。"
 							http.Redirect(w, r, "/room", http.StatusFound)
 						}
 					}
-					if err := userDB.roomUpdate(room.Id, account.Name, db); err != nil {
+					if err := userDB.RoomUpdate(room.Id, account.Name, db); err != nil {
 						log.Println(err.Error())
 					}
 				}
@@ -32,13 +34,13 @@ func chat(w http.ResponseWriter, r *http.Request) {
 				if sessionName(w, r) == "admin" {
 					t := templates["adminChat"]
 					msg.Message = ""
-					chats := MessageDB.readAll(name, db)
+					chats := MessageDB.ReadAll(name, db)
 					if err := t.Execute(w, struct {
 						Css    string
 						Js     string
 						Alert  string
 						Login  bool
-						Chat   []Message
+						Chat   []database.Message
 						Room   string
 						MyName string
 						User   string
@@ -50,13 +52,13 @@ func chat(w http.ResponseWriter, r *http.Request) {
 				} else {
 					t := templates["chat"]
 					msg.Message = ""
-					chats := MessageDB.readAll(name, db)
+					chats := MessageDB.ReadAll(name, db)
 					if err := t.Execute(w, struct {
 						Css    string
 						Js     string
 						Alert  string
 						Login  bool
-						Chat   []Message
+						Chat   []database.Message
 						Room   string
 						MyName string
 						User   string
@@ -83,12 +85,12 @@ func chat(w http.ResponseWriter, r *http.Request) {
 			if t == token(w, r) {
 				t := strings.TrimRight(r.Form.Get("message"), "\n")
 				if t != "" {
-					mes := Message{
+					mes := database.Message{
 						Message:  t,
 						Room:     name,
 						UserName: sessionName(w, r),
 					}
-					MessageDB.insert(&mes, db)
+					MessageDB.Insert(&mes, db)
 				}
 			}
 			http.Redirect(w, r, "/chat/"+name, http.StatusFound)

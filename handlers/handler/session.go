@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 /* https://devcenter.heroku.com/ja/articles/go-sessionsを改変*/
 

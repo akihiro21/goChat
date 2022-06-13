@@ -1,4 +1,4 @@
-package handlers
+package database
 
 import (
 	"database/sql"
@@ -12,8 +12,8 @@ type Room struct {
 	Name    string
 	Date    string
 	UserNum int
-	user1   int
-	user2   int
+	User1   int
+	User2   int
 }
 
 type roomDatabase struct{}
@@ -25,7 +25,7 @@ func NewRoomDB() RoomOperation {
 }
 
 //全てのユーザデータを取得
-func (d *roomDatabase) readAll(admin bool, db *sql.DB) []Room {
+func (d *roomDatabase) ReadAll(admin bool, db *sql.DB) []Room {
 	var (
 		oneRoom Room
 		rooms   []Room
@@ -44,7 +44,7 @@ func (d *roomDatabase) readAll(admin bool, db *sql.DB) []Room {
 		log.Println("roomReadAll" + err.Error())
 	}
 	for rows.Next() {
-		err = rows.Scan(&oneRoom.Id, &oneRoom.Name, &date, &oneRoom.user1, &oneRoom.user2)
+		err = rows.Scan(&oneRoom.Id, &oneRoom.Name, &date, &oneRoom.User1, &oneRoom.User2)
 		if err != nil {
 			log.Println("roomReadAll" + err.Error())
 		}
@@ -56,20 +56,20 @@ func (d *roomDatabase) readAll(admin bool, db *sql.DB) []Room {
 	return rooms
 }
 
-func (d *roomDatabase) insert(room Room, db *sql.DB) {
+func (d *roomDatabase) Insert(room Room, db *sql.DB) {
 	ins, err := db.Prepare("INSERT INTO room(name,date,userId1,userId2) VALUES(?,?,?,?)")
 	defer ins.Close()
 	if err != nil {
 		log.Println(err)
 	}
 
-	_, err = ins.Exec(&room.Name, &room.Date, &room.user1, &room.user2)
+	_, err = ins.Exec(&room.Name, &room.Date, &room.User1, &room.User2)
 	if err != nil {
 		log.Println("Insert room" + err.Error())
 	}
 }
 
-func (d *roomDatabase) readValue(key string, value string, db *sql.DB) (Room, error) {
+func (d *roomDatabase) ReadValue(key string, value string, db *sql.DB) (Room, error) {
 	var (
 		room Room
 		sql  string
@@ -86,7 +86,7 @@ func (d *roomDatabase) readValue(key string, value string, db *sql.DB) (Room, er
 		log.Println(err.Error())
 	}
 
-	err = exist.QueryRow(value).Scan(&room.Id, &room.Name, &room.Date, &room.user1, &room.user2)
+	err = exist.QueryRow(value).Scan(&room.Id, &room.Name, &room.Date, &room.User1, &room.User2)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -95,7 +95,7 @@ func (d *roomDatabase) readValue(key string, value string, db *sql.DB) (Room, er
 
 }
 
-func (d *roomDatabase) readId(id int, db *sql.DB) (Room, error) {
+func (d *roomDatabase) ReadId(id int, db *sql.DB) (Room, error) {
 	var room Room
 
 	exist, err := db.Prepare("SELECT * FROM room WHERE id = ? LIMIT 1")
@@ -104,36 +104,36 @@ func (d *roomDatabase) readId(id int, db *sql.DB) (Room, error) {
 		log.Println(err.Error())
 	}
 
-	err = exist.QueryRow(id).Scan(&room.Id, &room.Name, &room.Date, &room.user1, &room.user2)
+	err = exist.QueryRow(id).Scan(&room.Id, &room.Name, &room.Date, &room.User1, &room.User2)
 	if err != nil {
 		log.Println(err.Error())
 	}
 	return room, err
 }
 
-func (d *roomDatabase) userUpdate(key string, id int, roomName string, db *sql.DB) error {
+func (d *roomDatabase) UserUpdate(key string, id int, roomName string, db *sql.DB) error {
 	var (
 		sql string
 	)
 
-	roomOne, err := d.readValue("name", roomName, db)
+	roomOne, err := d.ReadValue("name", roomName, db)
 	if err != nil {
 		return err
 	}
 
 	switch key {
 	case "userId1":
-		if roomOne.user1 == id {
+		if roomOne.User1 == id {
 			return nil
-		} else if roomOne.user1 != 0 {
+		} else if roomOne.User1 != 0 {
 			return fmt.Errorf("Error: %s", "room is crowded")
 		}
 		sql = "UPDATE room SET userId1 = ? WHERE ( name = ? ) LIMIT 1"
 
 	case "userId2":
-		if roomOne.user2 == id {
+		if roomOne.User2 == id {
 			return nil
-		} else if roomOne.user2 != 0 {
+		} else if roomOne.User2 != 0 {
 			return fmt.Errorf("Error: %s", "room is crowded")
 		}
 		sql = "UPDATE room SET userId2 = ? WHERE ( name = ? ) LIMIT 1"
@@ -151,7 +151,7 @@ func (d *roomDatabase) userUpdate(key string, id int, roomName string, db *sql.D
 	return nil
 }
 
-func (d *roomDatabase) delete(room string, db *sql.DB) {
+func (d *roomDatabase) Delete(room string, db *sql.DB) {
 	delete, err := db.Prepare("DELETE FROM room WHERE name = ? ")
 	defer delete.Close()
 	if err != nil {
@@ -165,9 +165,9 @@ func (d *roomDatabase) delete(room string, db *sql.DB) {
 }
 
 func (d roomDatabase) num(room *Room) int {
-	if room.user2 != 0 && room.user1 != 0 {
+	if room.User2 != 0 && room.User1 != 0 {
 		return 2
-	} else if room.user2 == 0 && room.user1 == 0 {
+	} else if room.User2 == 0 && room.User1 == 0 {
 		return 0
 	} else {
 		return 1

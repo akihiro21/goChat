@@ -1,4 +1,4 @@
-package handlers
+package database
 
 import (
 	"database/sql"
@@ -21,7 +21,7 @@ func NewMessageDB() MessageOperation {
 	return db
 }
 
-func (d *messageDatabase) readAll(room string, db *sql.DB) []Message {
+func (d *messageDatabase) ReadAll(room string, db *sql.DB) []Message {
 	var oneMessage Message
 	var messages []Message
 
@@ -49,7 +49,7 @@ func (d *messageDatabase) readAll(room string, db *sql.DB) []Message {
 	return messages
 }
 
-func (d *messageDatabase) insert(message *Message, db *sql.DB) {
+func (d *messageDatabase) Insert(message *Message, db *sql.DB) {
 	prep, err := db.Prepare("INSERT INTO message(message,room,user) VALUES(?,?,?)")
 	defer prep.Close()
 	if err != nil {
@@ -62,7 +62,7 @@ func (d *messageDatabase) insert(message *Message, db *sql.DB) {
 	}
 }
 
-func (d *messageDatabase) delete(room string, db *sql.DB) {
+func (d *messageDatabase) Delete(room string, db *sql.DB) {
 	delete, err := db.Prepare("DELETE FROM message WHERE room = ? ")
 	defer delete.Close()
 	if err != nil {

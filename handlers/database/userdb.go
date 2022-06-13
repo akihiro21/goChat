@@ -1,4 +1,4 @@
-package handlers
+package database
 
 import (
 	"database/sql"
@@ -8,10 +8,10 @@ import (
 )
 
 type User struct {
-	id       int
+	Id       int
 	Name     string
-	password string
-	room     int
+	Password string
+	Room     int
 }
 
 type userDatabase struct{}
@@ -23,7 +23,7 @@ func NewUserDB() UserOperation {
 }
 
 //全てのユーザデータを取得
-func (d *userDatabase) readAll(db *sql.DB) []User {
+func (d *userDatabase) ReadAll(db *sql.DB) []User {
 	var user User
 	var users []User
 	rows, err := db.Query("select * from user;")
@@ -31,7 +31,7 @@ func (d *userDatabase) readAll(db *sql.DB) []User {
 		log.Println(err)
 	}
 	for rows.Next() {
-		err = rows.Scan(&user.id, &user.Name, &user.password, &user.room)
+		err = rows.Scan(&user.Id, &user.Name, &user.Password, &user.Room)
 		if err != nil {
 			log.Println(err)
 		}
@@ -42,7 +42,7 @@ func (d *userDatabase) readAll(db *sql.DB) []User {
 }
 
 //特定のユーザデータを取得
-func (d *userDatabase) readValue(key string, value string, db *sql.DB) (User, error) {
+func (d *userDatabase) ReadValue(key string, value string, db *sql.DB) (User, error) {
 	var (
 		sql  string
 		user User
@@ -59,7 +59,7 @@ func (d *userDatabase) readValue(key string, value string, db *sql.DB) (User, er
 		log.Println(err)
 	}
 
-	err = prep.QueryRow(value).Scan(&user.id, &user.Name, &user.password, &user.room)
+	err = prep.QueryRow(value).Scan(&user.Id, &user.Name, &user.Password, &user.Room)
 	if err != nil {
 		log.Println(err)
 	}
@@ -67,7 +67,7 @@ func (d *userDatabase) readValue(key string, value string, db *sql.DB) (User, er
 	return user, err
 }
 
-func (d *userDatabase) readId(id int, db *sql.DB) (User, error) {
+func (d *userDatabase) ReadId(id int, db *sql.DB) (User, error) {
 	var user User
 	prep, err := db.Prepare("SELECT * FROM user WHERE id = ? LIMIT 1")
 	defer prep.Close()
@@ -75,7 +75,7 @@ func (d *userDatabase) readId(id int, db *sql.DB) (User, error) {
 		log.Println(err)
 	}
 
-	err = prep.QueryRow(id).Scan(&user.id, &user.Name, &user.password, &user.room)
+	err = prep.QueryRow(id).Scan(&user.Id, &user.Name, &user.Password, &user.Room)
 	if err != nil {
 		log.Println(err)
 	}
@@ -84,39 +84,39 @@ func (d *userDatabase) readId(id int, db *sql.DB) (User, error) {
 }
 
 //新しいデータの追加
-func (d *userDatabase) insert(user *User, db *sql.DB) {
+func (d *userDatabase) Insert(user *User, db *sql.DB) {
 	ins, err := db.Prepare("INSERT INTO user(name,password,room) VALUES(?,?,?)")
 	defer ins.Close()
 	if err != nil {
 		log.Println(err)
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.password), 12)
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
 		log.Println(err)
 	}
 
 	log.Println(string(hash))
 
-	_, err = ins.Exec(user.Name, string(hash), user.room)
+	_, err = ins.Exec(user.Name, string(hash), user.Room)
 	if err != nil {
 		log.Println(err)
 	}
 }
 
 //パスワードの変更
-func (d *userDatabase) roomUpdate(id int, userName string, db *sql.DB) error {
+func (d *userDatabase) RoomUpdate(id int, userName string, db *sql.DB) error {
 	var (
 		room Room
 	)
 	roomDB := NewRoomDB()
 
-	_, err := d.readValue("name", userName, db)
+	_, err := d.ReadValue("name", userName, db)
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	}
 
-	room, err = roomDB.readId(id, db)
+	room, err = roomDB.ReadId(id, db)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -135,16 +135,16 @@ func (d *userDatabase) roomUpdate(id int, userName string, db *sql.DB) error {
 	return nil
 }
 
-func (d *userDatabase) passCheck(userName string, userPassword string, db *sql.DB) error {
+func (d *userDatabase) PassCheck(userName string, userPassword string, db *sql.DB) error {
 	var user User
 	exist, err := db.Prepare("SELECT * FROM user WHERE name = ? LIMIT 1")
 	defer exist.Close()
 	if err != nil {
 		log.Println("dbOpen", err)
 	}
-	err = exist.QueryRow(userName).Scan(&user.id, &user.Name, &user.password, &user.room)
+	err = exist.QueryRow(userName).Scan(&user.Id, &user.Name, &user.Password, &user.Room)
 	if err == nil {
-		err := bcrypt.CompareHashAndPassword([]byte(user.password), []byte(userPassword))
+		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userPassword))
 		log.Println("PassCheck", err)
 		return err
 	}
@@ -152,7 +152,7 @@ func (d *userDatabase) passCheck(userName string, userPassword string, db *sql.D
 }
 
 //データの消去
-func (d *userDatabase) delete(name string, db *sql.DB) {
+func (d *userDatabase) Delete(name string, db *sql.DB) {
 	delete, err := db.Prepare("DELETE FROM user WHERE name = ? ")
 	defer delete.Close()
 	if err != nil {
