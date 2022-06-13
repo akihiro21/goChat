@@ -10,4 +10,6 @@ require (
 	golang.org/x/crypto v0.0.0-20220516162934-403b01795ae8
 )
 
+replace github.com/akihiro21/goChat/handlers => ./handlers
+
 require github.com/gorilla/securecookie v1.1.1 // indirect
