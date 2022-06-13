@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/akihiro21/goChat/packages"
+	"github.com/akihiro21/goChat/handlers"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	packages.SessionInit()
+	handlers.SessionInit()
 
-	myDb := packages.ConnectDB()
+	myDb := handlers.ConnectDB()
 	defer myDb.Close()
 
-	packages.Init(myDb)
+	handlers.Init(myDb)
 
 	mux := http.NewServeMux()
 	dir, _ := os.Getwd()
@@ -23,6 +23,6 @@ func main() {
 	log.Printf("Server listening on http://localhost:%s/", port)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(dir+"/web/static/"))))
 
-	packages.HandleInit(mux)
+	handlers.HandleInit(mux)
 	log.Print(http.ListenAndServe(":"+port, mux))
 }
