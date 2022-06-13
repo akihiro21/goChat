@@ -22,10 +22,9 @@ var (
 	templates = make(map[string]*template.Template)
 )
 
-func Init(mux *http.ServeMux) {
+func Init(mux *http.ServeMux, myDb *sql.DB) {
 	go H.run()
-	db = database.ConnectDB()
-	defer db.Close()
+	db = myDb
 	SessionInit()
 	templatesInit()
 	HandlerInit(mux)
