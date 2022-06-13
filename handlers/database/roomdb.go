@@ -34,9 +34,9 @@ func (d *roomDatabase) ReadAll(admin bool, db *sql.DB) []Room {
 	)
 
 	if admin {
-		sql = "select * from room WHERE userId1 = 0 or userId2 = 0 order by date;"
-	} else {
 		sql = "select * from room order by date;"
+	} else {
+		sql = "select * from room WHERE userId1 = 0 or userId2 = 0 order by date;"
 	}
 
 	rows, err := db.Query(sql)

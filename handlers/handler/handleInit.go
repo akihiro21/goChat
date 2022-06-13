@@ -3,6 +3,7 @@ package handler
 import (
 	"database/sql"
 	"html/template"
+	"log"
 	"net/http"
 
 	"github.com/akihiro21/goChat/handlers/database"
@@ -53,4 +54,17 @@ func HandlerInit(mux *http.ServeMux) {
 	mux.HandleFunc("/delete/", roomDel)
 	mux.HandleFunc("/user", userList)
 	mux.HandleFunc("/userDel/", userDel)
+}
+
+func loadTemplate(name string) *template.Template {
+	t, err := template.ParseFiles(
+		"web/templates/"+name+".html",
+		"web/templates/_header.html",
+		"web/templates/_footer.html",
+	)
+	if err != nil {
+		log.Fatalf("template error: %v", err)
+	}
+
+	return t
 }

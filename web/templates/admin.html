@@ -8,9 +8,10 @@
     <ul>
         <table>
             <tr class="heading">
+                <th>ルームID</th>
                 <th>ルーム名</th>
                 <th>日付</th>
-                <th>人数</th>
+                <th>ユーザID</th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -18,9 +19,10 @@
             {{if .Room}}
             {{ range .Room }}
             <tr>
+                <td class="name">{{ .Id }}</td>
                 <td class="name">{{ .Name }}</td>
                 <td>{{ .Date }}</td>
-                <td>{{ .UserNum }}</td>
+                <td>ID: {{ .User1 }} ID: {{ .User2 }}</td>
                 <td><button class="join" onclick="location.href='/chat/{{ .Name }}'">join</button></td>
                 <td><button class="join" onclick="location.href='/csv/{{ .Name }}'">csv</button></td>
                 <td><button class="join" onclick="location.href='/delete/{{ .Name }}'">del</button></td>

@@ -8,13 +8,17 @@
     <ul>
         <table>
             <tr class="heading">
+                <th>ユーザID</th>
                 <th>ユーザ名</th>
+                <th>ユーザルーム</th>
                 <th></th>
             </tr>
             {{if .User}}
             {{ range .User }}
             <tr>
+                <td class="name">{{ .Id }}</td>
                 <td class="name">{{ .Name }}</td>
+                <td class="name">{{ .Room }}</td>
                 <td><button class="join" onclick="location.href='/userDel/{{ .Name }}'">del</button></td>
             </tr>
             {{ end }}
