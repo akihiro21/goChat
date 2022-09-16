@@ -1,4 +1,75 @@
+function viewChange1() {
+    if (document.getElementById('sample1')) {
+        id = document.getElementById('sample1').value;
+        if (id == 'select1') {
+            document.getElementById('conditions1').style.display = "";
+            document.getElementById('conditions2').style.display = "none";
+        } else if (id == 'select2') {
+            document.getElementById('conditions1').style.display = "none";
+            document.getElementById('conditions2').style.display = "";
+        }
+    }
+
+    window.onload = viewChange1;
+
+}
+function viewChange2() {
+    if (document.getElementById('sample2')) {
+        id = document.getElementById('sample2').value;
+        if (id == 'select1') {
+            for (var i = 1; i < 13; ++i) {
+                if (i == 1 || i == 7) {
+                    document.getElementById("Box" + i).style.display = "";
+                } else {
+                    document.getElementById("Box" + i).style.display = "none";
+                }
+            }
+        } else if (id == 'select2') {
+            for (var i = 1; i < 13; ++i) {
+                if (i == 2 || i == 8) {
+                    document.getElementById("Box" + i).style.display = "";
+                } else {
+                    document.getElementById("Box" + i).style.display = "none";
+                }
+            }
+        } else if (id == 'select3') {
+            for (var i = 1; i < 13; ++i) {
+                if (i == 3 || i == 9) {
+                    document.getElementById("Box" + i).style.display = "";
+                } else {
+                    document.getElementById("Box" + i).style.display = "none";
+                }
+            }
+        } else if (id == 'select4') {
+            for (var i = 1; i < 13; ++i) {
+                if (i == 4 || i == 10) {
+                    document.getElementById("Box" + i).style.display = "";
+                } else {
+                    document.getElementById("Box" + i).style.display = "none";
+                }
+            }
+        } else if (id == 'select5') {
+            for (var i = 1; i < 13; ++i) {
+                if (i == 5 || i == 11) {
+                    document.getElementById("Box" + i).style.display = "";
+                } else {
+                    document.getElementById("Box" + i).style.display = "none";
+                }
+            }
+        } else if (id == 'select6') {
+            for (var i = 1; i < 13; ++i) {
+                if (i == 6 || i == 12) {
+                    document.getElementById("Box" + i).style.display = "";
+                } else {
+                    document.getElementById("Box" + i).style.display = "none";
+                }
+            }
+        }
+        window.onload = viewChange2;
+    }
+}
 window.onload = function () {
+
     let conn;
     const msg = document.querySelectorAll("#in_form");
     const usr = document.getElementById("user");
@@ -94,4 +165,6 @@ window.onload = function () {
     } else {
         window.alert("Your browser does not support WebSockets.");
     }
+
+
 };
