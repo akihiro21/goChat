@@ -96,7 +96,7 @@ window.onload = function () {
         divFlex.appendChild(pMsg);
         pMsg.appendChild(text);
         let icon = document.createElement("img");
-        if (name == "OrangeBot" || name == "admin") {
+        if (name == "Orange" || name == "admin") {
             icon.src = "/static/image/bot.jpg";
         } else {
             icon.src = "/static/image/user2.jpg";

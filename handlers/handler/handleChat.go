@@ -80,7 +80,7 @@ func chat(w http.ResponseWriter, r *http.Request) {
 						MyName string
 						User   string
 						Token  string
-					}{Css: "chat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: "OrangeBot", Token: token(w, r)}); err != nil {
+					}{Css: "chat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: "Orange", Token: token(w, r)}); err != nil {
 						log.Printf("failed to execute template: %v", err)
 					}
 					msg.Message = ""
