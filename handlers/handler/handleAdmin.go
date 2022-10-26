@@ -103,12 +103,12 @@ func csvDown(w http.ResponseWriter, r *http.Request) {
 			c := csv.NewWriter(w)
 			err := c.WriteAll(list)
 			if err != nil {
-				log.Println(err.Error())
+				log.Println(err)
 			}
 			c.Flush()
 
 			if err := c.Error(); err != nil {
-				log.Println(err.Error())
+				log.Println(err)
 			}
 
 		}

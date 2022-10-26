@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -98,7 +97,7 @@ func (c *connection) jsonWrite(payload *sendMes) error {
 func (c *connection) write(mt int, payload []byte) error {
 	if err := c.ws.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 		log.SetFlags(log.Lshortfile)
-		log.Println(err.Error())
+		log.Println(err)
 	}
 	return c.ws.WriteMessage(mt, payload)
 }
@@ -127,11 +126,10 @@ func (s *subscription) writePump() {
 
 // serveWs handles websocket requests from the peer.
 func serveWs(w http.ResponseWriter, r *http.Request, room string, name string) {
-	fmt.Print(room)
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.SetFlags(log.Lshortfile)
-		log.Println(err.Error())
+		log.Println(err)
 		return
 	}
 	c := &connection{send: make(chan sendMes), ws: ws}

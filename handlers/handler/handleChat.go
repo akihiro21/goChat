@@ -47,7 +47,7 @@ func chat(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				if err := userDB.RoomUpdate(room.Id, account.Name, db); err != nil {
-					log.Println(err.Error())
+					log.Println(err)
 				}
 			}
 
@@ -160,7 +160,7 @@ func sbJson(command string, deviceID string) {
 	jsonData, _ := json.Marshal(sbData)
 	err := HttpPost(API_BASE_URL+"/v1.0/devices/"+deviceID+"/commands", jsonData)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 }
 

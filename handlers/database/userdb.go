@@ -95,8 +95,6 @@ func (d *userDatabase) Insert(user *User, db *sql.DB) {
 		log.Println(err)
 	}
 
-	log.Println(string(hash))
-
 	_, err = ins.Exec(user.Name, string(hash), user.Room)
 	if err != nil {
 		log.Println(err)
@@ -112,13 +110,13 @@ func (d *userDatabase) RoomUpdate(id int, userName string, db *sql.DB) error {
 
 	_, err := d.ReadValue("name", userName, db)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return err
 	}
 
 	room, err = roomDB.ReadId(id, db)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return err
 	}
 	upd, err := db.Prepare("UPDATE user SET room = ? WHERE ( name = ? ) LIMIT 1")

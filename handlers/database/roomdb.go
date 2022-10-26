@@ -83,12 +83,12 @@ func (d *roomDatabase) ReadValue(key string, value string, db *sql.DB) (Room, er
 	exist, err := db.Prepare(sql)
 	defer exist.Close()
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 
 	err = exist.QueryRow(value).Scan(&room.Id, &room.Name, &room.Date, &room.User1, &room.User2)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 
 	return room, err
@@ -101,12 +101,12 @@ func (d *roomDatabase) ReadId(id int, db *sql.DB) (Room, error) {
 	exist, err := db.Prepare("SELECT * FROM room WHERE id = ? LIMIT 1")
 	defer exist.Close()
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 
 	err = exist.QueryRow(id).Scan(&room.Id, &room.Name, &room.Date, &room.User1, &room.User2)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 	return room, err
 }

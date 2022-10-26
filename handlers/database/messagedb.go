@@ -28,20 +28,20 @@ func (d *messageDatabase) ReadAll(room string, db *sql.DB) []Message {
 	prep, err := db.Prepare("select * from message WHERE room = ?;")
 	defer prep.Close()
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return nil
 	}
 
 	rows, err := prep.Query(room)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return nil
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err = rows.Scan(&oneMessage.id, &oneMessage.Message, &oneMessage.Room, &oneMessage.UserName)
 		if err != nil {
-			log.Println(err.Error())
+			log.Println(err)
 		}
 		messages = append(messages, oneMessage)
 	}
@@ -53,12 +53,12 @@ func (d *messageDatabase) Insert(message *Message, db *sql.DB) {
 	prep, err := db.Prepare("INSERT INTO message(message,room,user) VALUES(?,?,?)")
 	defer prep.Close()
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err)
 	}
 
 	_, err = prep.Exec(message.Message, message.Room, message.UserName)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err)
 	}
 }
 
@@ -66,11 +66,11 @@ func (d *messageDatabase) Delete(room string, db *sql.DB) {
 	delete, err := db.Prepare("DELETE FROM message WHERE room = ? ")
 	defer delete.Close()
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 	_, err = delete.Exec(room)
 	defer delete.Close()
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 }

@@ -125,7 +125,7 @@ func tokenSession(w http.ResponseWriter, r *http.Request) {
 	h := md5.New()
 	salt := "goUser%^7&8888"
 	if _, err = io.WriteString(h, salt+time.Now().String()); err != nil {
-		log.Println(err)
+		log.Println("err", err)
 	}
 
 	token := fmt.Sprintf("%x", h.Sum(nil))
