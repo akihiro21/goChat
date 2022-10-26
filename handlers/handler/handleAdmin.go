@@ -12,62 +12,64 @@ import (
 
 func admin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		if noSession(w, r) {
+		if login := nowLoginBool(w, r); login == false {
 			http.Redirect(w, r, "/login", http.StatusFound)
-		} else {
-			if sessionName(w, r) == "admin" {
-				t := templates["admin"]
-				tokenCheck(w, r)
-				roomAll := roomDB.ReadAll(true, db)
-				if err := t.Execute(w, struct {
-					Css   string
-					Js    string
-					Alert string
-					Login bool
-					Room  []database.Room
-					Token string
-				}{Css: "room", Js: "room", Alert: msg.Message, Login: noSession(w, r), Room: roomAll, Token: token(w, r)}); err != nil {
-					log.Printf("failed to execute template: %v", err)
-					msg.Message = ""
-				}
-			} else {
-				http.Redirect(w, r, "/room", http.StatusFound)
+			return
+		}
+		if sessionName(w, r) == "admin" {
+			t := templates["admin"]
+			tokenCheck(w, r)
+			roomAll := roomDB.ReadAll(true, db)
+			if err := t.Execute(w, struct {
+				Css   string
+				Js    string
+				Alert string
+				Room  []database.Room
+				Token string
+				Login bool
+			}{Css: "room", Js: "room", Alert: msg.Message, Room: roomAll, Token: token(w, r), Login: nowLoginBool(w, r)}); err != nil {
+				log.Printf("failed to execute template: %v", err)
+				msg.Message = ""
 			}
+		} else {
+			http.Redirect(w, r, "/room", http.StatusFound)
 		}
 	}
 }
 
 func userList(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		if noSession(w, r) {
+		if login := nowLoginBool(w, r); login == false {
 			http.Redirect(w, r, "/login", http.StatusFound)
-		} else {
-			if sessionName(w, r) == "admin" {
-				t := templates["user"]
-				tokenCheck(w, r)
-				userAll := userDB.ReadAll(db)
-				if err := t.Execute(w, struct {
-					Css   string
-					Js    string
-					Alert string
-					Login bool
-					User  []database.User
-					Token string
-				}{Css: "room", Js: "room", Alert: msg.Message, Login: noSession(w, r), User: userAll[1:], Token: token(w, r)}); err != nil {
-					log.Printf("failed to execute template: %v", err)
-					msg.Message = ""
-				}
-			} else {
-				http.Redirect(w, r, "/room", http.StatusFound)
-			}
+			return
+		}
+		if sessionName(w, r) != "admin" {
+			http.Redirect(w, r, "/room", http.StatusFound)
+			return
+		}
+		t := templates["user"]
+		tokenCheck(w, r)
+		userAll := userDB.ReadAll(db)
+		if err := t.Execute(w, struct {
+			Css   string
+			Js    string
+			Alert string
+			User  []database.User
+			Token string
+			Login bool
+		}{Css: "room", Js: "room", Alert: msg.Message, User: userAll[1:], Token: token(w, r), Login: nowLoginBool(w, r)}); err != nil {
+			log.Printf("failed to execute template: %v", err)
+			msg.Message = ""
 		}
 	}
 }
 
 func userDel(w http.ResponseWriter, r *http.Request) {
-	if noSession(w, r) {
+	if login := nowLoginBool(w, r); login == false {
 		http.Redirect(w, r, "/login", http.StatusFound)
-	} else if r.Method == "GET" {
+		return
+	}
+	if r.Method == "GET" {
 		tokenCheck(w, r)
 		ep := strings.TrimPrefix(r.URL.Path, "/userDel")
 		_, name := filepath.Split(ep)
@@ -79,9 +81,11 @@ func userDel(w http.ResponseWriter, r *http.Request) {
 }
 
 func csvDown(w http.ResponseWriter, r *http.Request) {
-	if noSession(w, r) {
+	if login := nowLoginBool(w, r); login == false {
 		http.Redirect(w, r, "/login", http.StatusFound)
-	} else if r.Method == "GET" {
+		return
+	}
+	if r.Method == "GET" {
 		tokenCheck(w, r)
 		ep := strings.TrimPrefix(r.URL.Path, "/csv")
 		_, name := filepath.Split(ep)
@@ -97,11 +101,14 @@ func csvDown(w http.ResponseWriter, r *http.Request) {
 			}
 
 			c := csv.NewWriter(w)
-			c.WriteAll(list)
+			err := c.WriteAll(list)
+			if err != nil {
+				log.Println(err.Error())
+			}
 			c.Flush()
 
 			if err := c.Error(); err != nil {
-				log.Fatal(err)
+				log.Println(err.Error())
 			}
 
 		}
@@ -111,9 +118,11 @@ func csvDown(w http.ResponseWriter, r *http.Request) {
 }
 
 func roomDel(w http.ResponseWriter, r *http.Request) {
-	if noSession(w, r) {
+	if login := nowLoginBool(w, r); login == false {
 		http.Redirect(w, r, "/login", http.StatusFound)
-	} else if r.Method == "GET" {
+		return
+	}
+	if r.Method == "GET" {
 		tokenCheck(w, r)
 		ep := strings.TrimPrefix(r.URL.Path, "/delete")
 		_, name := filepath.Split(ep)

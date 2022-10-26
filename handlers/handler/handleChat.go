@@ -25,68 +25,70 @@ var (
 )
 
 func chat(w http.ResponseWriter, r *http.Request) {
-	if noSession(w, r) {
+	if login := nowLoginBool(w, r); login == false {
 		http.Redirect(w, r, "/login", http.StatusFound)
-	} else if r.Method == "GET" {
+		return
+	}
+	if r.Method == "GET" {
 		tokenCheck(w, r)
 		ep := strings.TrimPrefix(r.URL.Path, "/chat")
 		_, name := filepath.Split(ep)
 		if name != "" {
 			account, _ := userDB.ReadValue("name", name, db)
-			if room, err := roomDB.ReadValue("name", name, db); err == nil {
-				if account.Name != "admin" {
-					if err := roomDB.UserUpdate("userId1", account.Id, room.Name, db); err != nil {
-						if err := roomDB.UserUpdate("userId2", account.Id, room.Name, db); err != nil {
-							msg.Message = "この部屋は満員です。"
-							http.Redirect(w, r, "/room", http.StatusFound)
-						}
-					}
-					if err := userDB.RoomUpdate(room.Id, account.Name, db); err != nil {
-						log.Println(err.Error())
-					}
-				}
-
-				if sessionName(w, r) == "admin" {
-					t := templates["adminChat"]
-					msg.Message = ""
-					chats := MessageDB.ReadAll(name, db)
-					if err := t.Execute(w, struct {
-						Css       string
-						Js        string
-						Alert     string
-						Login     bool
-						Chat      []database.Message
-						Room      string
-						MyName    string
-						User      string
-						Token     string
-						Scenario1 Scenario
-						Scenario2 Scenario
-					}{Css: "adminChat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: account.Name, Token: token(w, r), Scenario1: csvName(scenario1, account.Name), Scenario2: csvName(scenario2, account.Name)}); err != nil {
-						log.Printf("failed to execute template: %v", err)
-					}
-					msg.Message = ""
-				} else {
-					t := templates["chat"]
-					msg.Message = ""
-					chats := MessageDB.ReadAll(name, db)
-					if err := t.Execute(w, struct {
-						Css    string
-						Js     string
-						Alert  string
-						Login  bool
-						Chat   []database.Message
-						Room   string
-						MyName string
-						User   string
-						Token  string
-					}{Css: "chat", Js: "chat", Alert: msg.Message, Login: noSession(w, r), Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: "Orange", Token: token(w, r)}); err != nil {
-						log.Printf("failed to execute template: %v", err)
-					}
-					msg.Message = ""
-				}
-			} else {
+			room, err := roomDB.ReadValue("name", name, db)
+			if err != nil {
 				http.Redirect(w, r, "/room", http.StatusFound)
+			}
+			if account.Name != "admin" {
+				if err := roomDB.UserUpdate("userId1", account.Id, room.Name, db); err != nil {
+					if err := roomDB.UserUpdate("userId2", account.Id, room.Name, db); err != nil {
+						msg.Message = "この部屋は満員です。"
+						http.Redirect(w, r, "/room", http.StatusFound)
+					}
+				}
+				if err := userDB.RoomUpdate(room.Id, account.Name, db); err != nil {
+					log.Println(err.Error())
+				}
+			}
+
+			if sessionName(w, r) == "admin" {
+				t := templates["adminChat"]
+				msg.Message = ""
+				chats := MessageDB.ReadAll(name, db)
+				if err := t.Execute(w, struct {
+					Css       string
+					Js        string
+					Alert     string
+					Chat      []database.Message
+					Room      string
+					MyName    string
+					User      string
+					Token     string
+					Scenario1 Scenario
+					Scenario2 Scenario
+					Login     bool
+				}{Css: "adminChat", Js: "chat", Alert: msg.Message, Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: account.Name, Token: token(w, r), Scenario1: csvName(scenario1, account.Name), Scenario2: csvName(scenario2, account.Name), Login: nowLoginBool(w, r)}); err != nil {
+					log.Printf("failed to execute template: %v", err)
+				}
+				msg.Message = ""
+			} else {
+				t := templates["chat"]
+				msg.Message = ""
+				chats := MessageDB.ReadAll(name, db)
+				if err := t.Execute(w, struct {
+					Css    string
+					Js     string
+					Alert  string
+					Chat   []database.Message
+					Room   string
+					MyName string
+					User   string
+					Token  string
+					Login  bool
+				}{Css: "chat", Js: "chat", Alert: msg.Message, Chat: chats, Room: room.Name, MyName: sessionName(w, r), User: "Orange", Token: token(w, r), Login: nowLoginBool(w, r)}); err != nil {
+					log.Printf("failed to execute template: %v", err)
+				}
+				msg.Message = ""
 			}
 		} else {
 			http.Redirect(w, r, "/room", http.StatusFound)

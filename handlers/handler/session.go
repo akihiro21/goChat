@@ -27,7 +27,7 @@ var (
 func SessionInit() {
 	ek, err := determineEncryptionKey()
 	if err != nil {
-		log.Panicln("err", err)
+		log.Println("err", err)
 	}
 
 	sessionStore = sessions.NewCookieStore(
@@ -57,14 +57,14 @@ func handleSessionError(w http.ResponseWriter, err error) {
 	http.Error(w, "Application Error", http.StatusInternalServerError)
 }
 
-func noSession(w http.ResponseWriter, r *http.Request) bool {
+func nowLoginBool(w http.ResponseWriter, r *http.Request) bool {
 	session, err := sessionStore.Get(r, SessionName)
 	if err != nil {
 		handleSessionError(w, err)
 	}
 
 	name, found := session.Values["name"].(string)
-	if !found || name == "" {
+	if found || name != "" {
 		return true
 	} else {
 		return false
@@ -175,8 +175,9 @@ func tokenCheck(w http.ResponseWriter, r *http.Request) {
 		deleteSession(w, r)
 		tokenSession(w, r)
 		tokens = append(tokens, token(w, r))
-		if noSession(w, r) {
-			http.Redirect(w, r, "/login", 302)
+		if login := nowLoginBool(w, r); login == false {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
 		}
 	}
 }

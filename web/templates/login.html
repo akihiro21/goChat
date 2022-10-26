@@ -1,4 +1,4 @@
-{{template "header" .}}
+{{template "header" . }}
 
 <div class="login">
     <!--
@@ -14,7 +14,7 @@
         {{end}}
         <h1>Let's login!</h1>
         <input placeholder="名前" name="username" type="text" required />
-        <input placeholder="学籍番号" name="password" type="password" required />
+        <input placeholder="学籍番号(数字のみ)" name="password" type="password" required />
         <input class="btn" type="submit" value="login">
         <input type="hidden" name="token" value="{{.Token}}">
         <h6><a href="/create">Create Account</a></h6>
