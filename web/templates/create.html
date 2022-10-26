@@ -14,7 +14,7 @@
         {{end}}
         <h1>Create Account</h1>
         <input placeholder="名前" name="username" type="text" required />
-        <input placeholder="学籍番号" name="password" type="password" required />
+        <input placeholder="学籍番号(数字のみ)" name="password" type="password" required />
         <input type="hidden" name="token" value="{{.Token}}">
         <input class="btn" type="submit" value="Create">
         <h6><a href="/login">login</a></h6>

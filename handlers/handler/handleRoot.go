@@ -8,14 +8,15 @@ import (
 
 func root(w http.ResponseWriter, r *http.Request) {
 	tokenCheck(w, r)
-	if noSession(w, r) {
+	if login := nowLoginBool(w, r); login == false {
 		http.Redirect(w, r, "/create", http.StatusFound)
+		return
 	} else {
-		if sessionName(w, r) == "admin" {
-			http.Redirect(w, r, "/admin", http.StatusFound)
-		} else {
-			http.Redirect(w, r, "/room", http.StatusFound)
-		}
+		http.Redirect(w, r, "/room", http.StatusFound)
 	}
-
+	if sessionName(w, r) == "admin" {
+		http.Redirect(w, r, "/admin", http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/room", http.StatusFound)
+	}
 }

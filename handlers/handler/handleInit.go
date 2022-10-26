@@ -85,7 +85,7 @@ func loadTemplate(name string) *template.Template {
 func loadCsv(name string) Scenario {
 	file, err := os.Open("web/csv/" + name + ".csv")
 	if err != nil {
-		log.Fatalf("csv load error: %v", err)
+		log.Printf("csv load error: %v", err)
 	}
 	defer file.Close()
 	csvReader := csv.NewReader(file)
