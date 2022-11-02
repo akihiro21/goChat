@@ -94,6 +94,7 @@ func loadCsv(name string) Scenario {
 	for {
 		line, err := csvReader.Read()
 		if err != nil {
+			log.Println(err)
 			break
 		}
 
