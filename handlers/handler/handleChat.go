@@ -20,7 +20,7 @@ type SwitchBot struct {
 }
 
 var (
-	ACCESS_TOKEN = "***REMOVED***"
+	ACCESS_TOKEN = ""
 	API_BASE_URL = "https://api.switch-bot.com"
 )
 
@@ -119,11 +119,11 @@ func chat(w http.ResponseWriter, r *http.Request) {
 							command = "turnOff"
 						}
 						if strings.Contains(t, "テレビ") {
-							sbJson(command, "***REMOVED***")
+							sbJson(command, "")
 						} else if strings.Contains(t, "扇風機") {
-							sbJson("電源", "***REMOVED***")
+							sbJson("電源", "")
 						} else if strings.Contains(t, "ライト") {
-							sbJson("電源", "***REMOVED***")
+							sbJson("電源", "")
 						}
 					}
 
