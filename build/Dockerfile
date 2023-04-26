@@ -10,6 +10,6 @@ WORKDIR /go/src/app/
 ADD . /go/src/app
 
 RUN go mod tidy
-RUN go install github.com/cosmtrek/air@v1.29.0
-
-CMD ["air", "-c", ".air.toml"]
+CMD ["go", "run", "./app/main.go"]
+# RUN go install github.com/cosmtrek/air@v1.29.0
+# CMD ["air", "-c", ".air.toml"]
