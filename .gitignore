@@ -4,7 +4,7 @@ git checkoutgit checkout# Binaries for programs and plugins
 *.dll
 *.soz
 *.dylib
-.env
+*.env
 <<<<<<< HEAD
 *.air.toml
 tmp
