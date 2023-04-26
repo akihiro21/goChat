@@ -3,6 +3,17 @@
 # 概要
 - 人間同士のチャットや、対話システムを模した実験をするためのアプリ
 - 特定の実験のため、csvでシナリオを追加している
+# 実行
+ルート直下に.envファイルを追加。以下の環境変数を記述   
+  
+SESSION_AUTHENTICATION_KEY  
+SESSION_ENCRYPTION_KEY  
+TZ   
+MYSQL_ROOT_PASSWORD  
+MYSQL_DATABASE  
+MYSQL_USER  
+MYSQL_PASSWORD  
+
 # 問題
 - 実験に間に合わせるためやっつけな部分が多数(csvの読み込みとか)
 - なんちゃってアーキテクチャ（ちゃんと設計学んでないので変）
