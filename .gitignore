@@ -2,8 +2,9 @@ git checkoutgit checkout# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
-*.so
+*.soz
 *.dylib
+.env
 <<<<<<< HEAD
 *.air.toml
 tmp
